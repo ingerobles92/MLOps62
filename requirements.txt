@@ -24,6 +24,6 @@ pytest
 cookiecutter-data-science
 
 # === DVC / S3 ===
-# dvc[s3]
-# boto3
-# s3fs
+dvc[s3]
+boto3
+s3fs
