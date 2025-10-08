@@ -9,3 +9,7 @@ mlruns/
 data/raw/*.csv
 data/interim/
 data/processed/
+
+# venvs
+.venv/
+venv/
