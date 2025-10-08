@@ -13,3 +13,7 @@ data/processed/
 # venvs
 .venv/
 venv/
+
+# MLflow
+.mlflow/
+mlruns/
