@@ -1,0 +1,40 @@
+name: CI (Lint + DVC + Docker)
+
+on: [push, pull_request]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Configurar Python para lint y DVC
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias básicas
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install dvc[s3] black isort flake8
+
+      - name: Configurar credenciales AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-west-2
+        run: echo "Credenciales configuradas"
+
+      - name: Sincronizar datos (DVC pull)
+        run: dvc pull || echo "Sin datos en DVC todavía"
+
+      - name: Lint y estilo
+        run: |
+          black --check .
+          isort --check-only .
+          flake8 .
+
+      # (Opcional) Construir la imagen Docker
+      - name: Construir imagen Docker
+        run: docker build -t mlops62-test .
