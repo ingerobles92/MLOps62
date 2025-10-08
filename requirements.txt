@@ -21,16 +21,9 @@ evidently
 pytest
 
 # === Herramientas de scaffolding (dev) ===
-# cookiecutter sirve para generar estructuras de proyecto.
-# Puedes dejarlo aquí o moverlo a un requirements-dev.txt aparte.
-cookiecutter
+cookiecutter-data-science
 
-# === DVC / S3 (desactivado por ahora) ===
+# === DVC / S3 ===
 # dvc[s3]
 # boto3
 # s3fs
-
-# === Lint/format (tu CI ya los instala; opcional aquí) ===
-# black
-# isort
-# flake8
