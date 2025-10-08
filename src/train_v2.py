@@ -1,10 +1,11 @@
-import yaml
 import sys
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+
 import joblib
 import mlflow
+import pandas as pd
+import yaml
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 
 def load_params():

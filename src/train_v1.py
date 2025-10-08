@@ -1,7 +1,8 @@
-import pandas as pd
 import sys
-from sklearn.linear_model import LogisticRegression
+
 import joblib
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
 
 
 def train_model(X_train_path, y_train_path):
