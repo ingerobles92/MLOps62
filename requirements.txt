@@ -1,0 +1,16 @@
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+scikit-learn
+cookiecutter
+pytest
+fastapi
+uvicorn
+mlflow
+evidently
+# DVC y S3 van en Dockerfile para asegurar versión consistente:
+# dvc[s3]
+# boto3
+# s3fs

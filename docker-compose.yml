@@ -1,0 +1,32 @@
+services:
+  mlops-app:
+    build: .
+    container_name: mlops-app
+    working_dir: /work
+    volumes:
+      - ./:/work
+    env_file:
+      - .env
+    ports:
+      - "8888:8888"
+    command: bash -lc "\
+      jupyter lab --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --allow-root & \
+      tail -f /dev/null"
+
+  mlflow:
+    image: python:3.13-slim
+    container_name: mlflow
+    working_dir: /work
+    volumes:
+      - ./.mlflow:/work/.mlflow
+    environment:
+      MLFLOW_TRACKING_URI: http://0.0.0.0:9001
+    ports:
+      - "9001:9001"
+    command: bash -lc "\
+      pip install --no-cache-dir --upgrade pip && \
+      pip install --no-cache-dir mlflow && \
+      mlflow server \
+        --host 0.0.0.0 --port 9001 \
+        --backend-store-uri sqlite:///./.mlflow/mlflow.db \
+        --default-artifact-root file:///work/.mlflow/artifacts"
