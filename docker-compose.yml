@@ -5,6 +5,8 @@ services:
     working_dir: /work
     volumes:
       - ./:/work
+      - ${HOME}/.ssh:/root/.ssh:ro
+      - ${HOME}/.gitconfig:/root/.gitconfig:ro
     env_file:
       - .env
     ports:
