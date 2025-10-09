@@ -6,9 +6,6 @@ __pycache__/
 **/.ipynb_checkpoints/
 mlruns/
 .DS_Store
-data/raw/*.csv
-data/interim/
-data/processed/
 
 # venvs
 .venv/
