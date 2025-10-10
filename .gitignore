@@ -14,3 +14,17 @@ venv/
 # MLflow
 .mlflow/
 mlruns/
+# --- Data managed by DVC ---
+data/**
+!data/**/*.dvc
+!data/**/.gitkeep
+.env
+*.env
+# --- Data managed by DVC ---
+data/**
+!data/**/*.dvc
+!data/**/.gitkeep
+
+# Env & secrets
+.env
+*.env
