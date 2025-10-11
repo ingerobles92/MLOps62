@@ -9,6 +9,9 @@ services:
       - ${HOME}/.gitconfig:/root/.gitconfig:ro
     env_file:
       - .env
+    environment:
+      # MLflow client inside notebooks/scripts
+      MLFLOW_TRACKING_URI: http://mlflow:9001
     ports:
       - "8888:8888"
     command: bash -lc "\
@@ -21,14 +24,14 @@ services:
     working_dir: /work
     volumes:
       - ./.mlflow:/work/.mlflow
-    environment:
-      MLFLOW_TRACKING_URI: http://0.0.0.0:9001
+    env_file:
+      - .env
     ports:
       - "9001:9001"
     command: bash -lc "\
       pip install --no-cache-dir --upgrade pip && \
-      pip install --no-cache-dir mlflow && \
+      pip install --no-cache-dir mlflow boto3 s3fs && \
       mlflow server \
         --host 0.0.0.0 --port 9001 \
         --backend-store-uri sqlite:///./.mlflow/mlflow.db \
-        --default-artifact-root file:///work/.mlflow/artifacts"
+        --default-artifact-root s3://mlopsequipo62/mlops/artifacts"
