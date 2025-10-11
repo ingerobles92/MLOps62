@@ -28,3 +28,18 @@ data/**
 # Env & secrets
 .env
 *.env
+
+# --- DVC data rules (keep pointers, ignore blobs) ---
+# Asegura que los dirs de data NO estén completamente ignorados
+!data/
+!data/raw/
+!data/interim/
+!data/processed/
+
+# Ignora todos los CSV dentro de data/ (en cualquier subcarpeta)
+data/**/*.csv
+data/*.csv
+
+# Nunca ignores los punteros de DVC
+!data/**/*.dvc
+!data/*.dvc
