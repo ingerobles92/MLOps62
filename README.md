@@ -1,11 +1,19 @@
-# MLOps62 - Absenteeism Prediction System
+# MLOps62 – Absenteeism Project
+
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Python](https://img.shields.io/badge/python-3.13-blue)
+![Docker](https://img.shields.io/badge/docker-compose-blue)
 
 **Team:** MLOps 62
+
 **Project:** Workforce Absenteeism Prediction using Machine Learning
 
 ## Overview
 
-This project develops a machine learning system to predict employee absenteeism hours, enabling proactive workforce planning and targeted HR interventions.
+This project develops a machine learning system to predict employee absenteeism hours, enabling proactive workforce planning and targeted HR interventions.The development of this project include data versioning, EDA, preprocessing, experiment tracking, and model training/deployment.
+
+This repo aims to keep **data reproducibility** (DVC), **artifact traceability** (MLflow), and consistent **runtime** (Docker).
+
 
 **Business Impact:**
 - Reduce unplanned workforce shortages by 15-20%
@@ -20,97 +28,60 @@ This project develops a machine learning system to predict employee absenteeism 
 - **Development:** Python 3.13, Jupyter Lab, Docker
 - **Infrastructure:** Docker Compose, AWS S3
 
+
+---
+
+
 ## Project Organization
 
 ```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
-├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
+MLOps62/
+├── LICENSE                    <- Open-source license if one is chosen
+├── Makefile                   <- Makefile with convenience commands like `make data` or `make train`
+├── README.md                  <- The top-level README for developers using this project.
 │
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
+├── .dvc                       <- Configuration for DVC and version control.
 │
-├── models             <- Trained and serialized models, model predictions, or model summaries
+├── .vscode                    <- Python configuration for the environment.
 │
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
+├── data                       <- Data from third party sources.
+│   ├── external               <- Data from third party sources.
+│   ├── interim                <- Intermediate data that has been transformed (DVC pointers only in Git).
+│   ├── processed              <- The final, canonical data sets for modeling (DVC pointers only in Git).
+│   └── raw                    <- The original, immutable data dump.
 │
-├── pyproject.toml     <- Project configuration file with package metadata for 
-│                         EDA and configuration for tools like black
+├── models                     <- Trained and serialized models, model predictions, or model summaries
 │
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
+├── notebooks                  <- Jupyter notebooks. Naming e.g.`1.0-jqp-initial-data-exploration`.
+│   ├── 1_EDA                  <- Jupyter notebooks of Exploratory Data Analysis (EDA).
+│   ├── 2_Feature_Engineering  <- Jupyter notebooks of Feature Engineering.
+│   ├── 3_Modeling             <- Jupyter notebooks of ML Modeling experiments.
+│   └── Scratch                <- Jupyter notebooks of in-progress experiments.
+│                
+├── pyproject.toml             <- Project configuration file with package metadata for 
+│                                 EDA and configuration for tools like black
 │
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
+├── references                 <- Data dictionaries, manuals, and all other explanatory materials.
 │
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
+├── reports                    <- Generated analysis as HTML, PDF, LaTeX, etc.
+│   └── figures                <- Generated graphics and figures to be used in reporting
 │
-├── setup.cfg          <- Configuration file for flake8
+├── scripts                    <- Helpers to automatically run a series of commands.
 │
-└── EDA   <- Source code for use in this project.
-    │
-    ├── __init__.py             <- Makes EDA a Python module
-    │
-    ├── config.py               <- Store useful variables and configuration
-    │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── modeling                
-    │   ├── __init__.py 
-    │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
+├── SRC                        <- Source code for use in this project.
+│                
+├── .env.example               <- Template for env vars for AWS services.
+├── .gitignore                 <- Defines which files and folders Git should ignore.
+├── Dockerfile                 <- he build recipe for the container image.
+├── README.md                  <- The main documentation file describing the project, structure and setup.
+├── docker-compose.yml         <- The orchestration file that defines and runs multiple services.
+└── requirements.txt           <- The requirements file for reproducing the analysis environment.
+
 ```
 
-## Team Contributions
+> **Important:** CSVs live in **S3 via DVC**. Git only stores DVC pointers (`.dvc` files), never raw CSVs.
 
-### Data Scientist: Alexis Alduncin
-
-**Phase 1 Deliverables (Complete):**
-
-**Source Code Modules (884+ lines):**
-- `src/data_utils.py` (New): Robust DVC data loading with MD5 verification, Docker/local path detection
-- `src/config.py` (105 lines): Centralized configuration for MLflow, AWS, and feature parameters
-- `src/features.py` (307 lines): Complete feature engineering pipeline with `AbsenteeismFeatureEngine` class
-- `src/plots.py` (465 lines): 7 reusable visualization functions for EDA and model evaluation
-
-**Feature Engineering (7 features created):**
-1. **Absence_Category**: Duration bins (Short, Half_Day, Full_Day, Extended)
-2. **BMI_Category**: WHO-standard health categories
-3. **Age_Group**: Life-stage segmentation
-4. **Distance_Category**: Commute distance bins
-5. **Workload_Category**: Stress indicators
-6. **Season_Name**: Interpretable season labels
-7. **High_Risk**: Composite risk flag (statistically significant, p < 0.05)
-
-**Notebooks Created:**
-- `01-aa-ml-canvas.ipynb`: ML Canvas and business understanding
-- `02-aa-eda-transformations.ipynb`: Comprehensive EDA with custom modules
-- `03-aa-feature-engineering.ipynb`: Detailed feature engineering demonstration
-- `04-aa-model-experiments.ipynb`: Baseline models with MLflow tracking
-
-**Documentation:**
-- `docs/data_scientist_report.md`: Complete Phase 1 report with insights and recommendations
-
-**Models Trained:**
-- Linear Regression baseline
-- Random Forest regressor
-- All experiments tracked in MLflow
-
-**Key Insights:**
-- High-risk composite feature identifies employees 25% more likely to have extended absences
-- Winter season shows 30% higher absenteeism (flu season)
-- Age 30-45 shows highest absenteeism (family responsibilities)
-- Very far commute (>40km) correlates with 15% higher absence
+---
 
 ## Setup Instructions
 
@@ -119,31 +90,21 @@ This project develops a machine learning system to predict employee absenteeism 
 - AWS credentials (for DVC data access)
 - Git
 
-### Quick Start with Docker
 
-1. **Clone repository:**
-```bash
-git clone https://github.com/ingerobles92/MLOps62.git
-cd MLOps62
+## Environment Variables
+Create a local **`.env`** (never commit secrets). Use this template as **`.env.example`**:
+
+```env
+# ===== AWS (used by DVC and MLflow) =====
+AWS_ACCESS_KEY_ID=YOUR_KEY
+AWS_SECRET_ACCESS_KEY=YOUR_SECRET
+AWS_DEFAULT_REGION=us-east-1
+
 ```
 
-2. **Configure AWS credentials:**
+Commit `.env.example`, keep `.env` in `.gitignore`.
 
-Create `.env` file in project root:
-```bash
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_DEFAULT_REGION=us-west-2
-```
-
-3. **Start services:**
-```bash
-docker-compose up -d
-```
-
-4. **Access Jupyter Lab:**
-- Open: http://localhost:8888
-- The repository is mounted at `/work` inside the container
+---
 
 **Known Issues when running the notebooks**:
 
@@ -171,154 +132,141 @@ That way Docker will find *~/.gitconfig* file and copy it.
 
 5. **Access MLflow UI:**
 - Open: http://localhost:9001
+## Quickstart (Docker)
+```bash
+# 1) Clone & enter
+git clone git@github.com:ingerobles92/MLOps62.git
+cd MLOps62
 
-### Data Access
+# 2) Copy and fill your local env
+cp .env.example .env
+# edit .env and set your AWS_* keys
 
-Data is versioned with DVC and stored in S3. The team's `src/data_utils.py` module handles loading automatically:
+# 3) Start services
+docker compose up -d
 
-```python
-from src.data_utils import load_data
+# 4) Attach to container shell
+docker compose exec mlops-app bash
 
-# Automatically detects Docker (/work) vs local paths
-# Verifies MD5 integrity, falls back to S3 if needed
-df = load_data("data/raw/work_absenteeism_modified.csv")
+# 5) Sync datasets (pull pointers -> data)
+dvc remote list               # should show s3remote
+dvc status -r s3remote -c
+dvc pull                      # materialize datasets per .dvc pointers
 ```
 
-### Running Notebooks
+### Access JupyterLab
+```bash
+# Inside container
+jupyter lab --allow-root --ip=0.0.0.0 --port 8888 --NotebookApp.token='' --NotebookApp.password=''
 
-Notebooks should be run in order:
-1. `01-aa-ml-canvas.ipynb` - Business understanding
-2. `02-aa-eda-transformations.ipynb` - EDA and feature engineering
-3. `03-aa-feature-engineering.ipynb` - Feature deep dive
-4. `04-aa-model-experiments.ipynb` - Model training with MLflow
-
-## Usage Examples
-
-### Feature Engineering
-
-```python
-from src.features import AbsenteeismFeatureEngine
-from src import config
-
-engine = AbsenteeismFeatureEngine()
-df_clean = engine.clean_data(df_raw)
-df_features = engine.engineer_features(df_clean)
-X, y = engine.prepare_for_modeling(df_features, scale_features=True)
+#Open in explorer http://localhost:8888
+#Project workspace inside container: `/work`.
 ```
+---
 
-### Visualization
+## Access MLflow UI
+We run MLflow server via Docker Compose. Default setup:
+- **Tracking URI:** `http://localhost:9001`
+- **Backend store:** SQLite (mounted at `./.mlflow/`)
+- **Artifact store:** S3 bucket `s3://mlopsequipo62/mlops/artifacts`
 
-```python
-from src.plots import (
-    plot_target_distribution,
-    create_eda_summary_dashboard,
-    plot_categorical_analysis
-)
+Access UI: http://localhost:9001
 
-# Target analysis
-plot_target_distribution(df, config.TARGET_COLUMN)
-
-# Comprehensive dashboard
-create_eda_summary_dashboard(df)
-```
-
-### MLflow Tracking
-
+### Minimal tracking example MLFlow
 ```python
 import mlflow
-from sklearn.ensemble import RandomForestRegressor
 
+mlflow.set_tracking_uri("http://localhost:9001")
 mlflow.set_experiment("absenteeism-team62")
 
-with mlflow.start_run(run_name="my_experiment"):
-    model = RandomForestRegressor()
-    model.fit(X_train, y_train)
-    mlflow.log_metric("test_mae", mae)
-    mlflow.sklearn.log_model(model, "model")
+with mlflow.start_run(run_name="quick-check"):
+    mlflow.log_param("model", "demo")
+    mlflow.log_metric("accuracy", 0.9)
+    with open("hello.txt", "w") as f:
+        f.write("hello artifact")
+    mlflow.log_artifact("hello.txt")
 ```
+Artifacts are stored in S3; runs & params live in the SQLite backend.
 
-## Dataset
+---
 
-**Source:** Brazilian courier company employee records (2007-2010)
+## Data Versioning with DVC
+**Principle:** CSVs are versioned with DVC → **Git stores only `.dvc` pointers**, blobs live in **S3**.
 
-**Storage:** AWS S3 (`s3://mlopsequipo62/mlops/`)
-
-**Size:** 754 records, 22 features
-
-**Target:** Absenteeism time in hours (0-120h)
-
-**Key Features:**
-- Personal: Age, BMI, Education, Children
-- Work: Distance, Workload, Service time
-- Behavioral: Social drinker/smoker, Disciplinary failures
-- Temporal: Month, Day of week, Season
-- Health: Reason for absence (ICD codes)
-
-## Model Performance
-
-**Target Metrics:**
-- MAE < 4 hours
-- RMSE < 8 hours
-- R² > 0.3
-
-**Baseline Models (Expected):**
-
-| Model | MAE (hours) | RMSE (hours) | R² |
-|-------|-------------|--------------|-----|
-| Linear Regression | 3.5-4.5 | 6-8 | 0.15-0.30 |
-| Random Forest | 3.0-4.0 | 5-7 | 0.25-0.40 |
-
-## Development Workflow
-
-### Docker Workflow (Recommended)
-
+### Add or update a dataset (.csv)
 ```bash
-# Start containers
-docker-compose up -d
-
-# Access Jupyter Lab at http://localhost:8888
-# Work is automatically synced to /work in container
-
-# View MLflow experiments at http://localhost:9001
-
-# Stop containers
-docker-compose down
+# Inside container
+dvc add data/processed/CSV_name_v1.0.csv
+git add data/processed/CSV_name_v1.0.csv.dvc
+git commit -m "data: track processed v1.0 via DVC"
+dvc push -r s3remote      # upload blob to S3
+git push origin <your-branch>
 ```
 
-### Local Development (Alternative)
+### Read helper (from `src/data_utils.py`)
+- Verifies MD5 of local file vs pointer.
+- If mismatch/missing, **auto-`dvc pull`** and read.
 
+```python
+from src.data_utils import dvc_read_csv_verified
+
+df, source = dvc_read_csv_verified("data/raw/work_absenteeism_modified.csv")
+print(source)  # "local" or "pulled"
+```
+
+---
+
+## Git Workflow (Branches & PRs)
+- **Protected `main`**; work on feature branches:
+  - `feature/<roll>-<name>`
+- Flow:
+  1. `git switch -c feature/<something>`
+  2. Commit changes (`feat:`, `chore:`, `fix:`, etc.)
+  3. `git push -u origin feature/<something>`
+  4. Open a Pull Request → code review → merge to `main`
+
+Conventions:
+- Notebooks “canónicos”: `notebooks/1_EDA/...`
+- Intermediate/processed CSVs via DVC (`data/interim`, `data/processed`).
+- No `.csv` in Git — only `.dvc` pointers.
+
+---
+
+## Make It Easy – Helper Script
+We include an interactive helper:
+```
+scripts/publish_data.sh
+```
+It lets you:
+- Select CSV paths to track with DVC.
+- Push blobs to S3.
+- Commit & push `.dvc` pointers to Git.
+
+Run:
 ```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Pull data from DVC
-dvc pull
-
-# Start Jupyter
-jupyter lab
-
-# Start MLflow UI
-mlflow ui --port 9001
+bash scripts/publish_data.sh
 ```
+
+---
+
+## Requirements
+See `requirements.txt` for the stack used (PyData, DVC S3, MLflow, etc.).
+Install inside Docker automatically via Compose.
+
+---
+
+## Security & Secrets
+- Never commit `.env` or credentials.
+- Limit IAM permissions to the required S3 paths (`mlops/*` is enough).
+- Rotate keys when needed.
+
+---
 
 ## Contributing
+1. Create a feature branch
+2. Make changes & tests pass
+3. Open a PR to `main`
+4. Address review comments and merge
 
-**Branch Strategy:**
-- `main`: Production-ready code
-- `feature/*`: Feature development branches
+---
 
-**Naming Conventions:**
-- Notebooks: `##-initials-description.ipynb` (e.g., `01-aa-ml-canvas.ipynb`)
-- Commits: Descriptive messages following conventional commits
-
-## Documentation
-
-- **ML Canvas:** `notebooks/01-aa-ml-canvas.ipynb`
-- **Data Scientist Report:** `docs/data_scientist_report.md`
-- **Setup Guide:** `Setup.md`
-
---------

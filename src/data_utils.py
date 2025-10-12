@@ -1,19 +1,26 @@
 """
 Data Loading Utilities for DVC Integration
-Author: Team 62 (extracted from notebooks/EDA/eda_V1.ipynb)
+Author: Team 62 (extracted from notebooks/1.0-ERL-Utilidad-DVC-lectura-datasets.ipynb)
 Enhanced by: Alexis Alduncin
 
 Robust data loading with MD5 verification and Docker/local path detection.
 """
 
-import os
-import yaml
-import hashlib
-import pandas as pd
-from pathlib import Path
-from typing import Dict, Tuple, Optional
-from dvc.repo import Repo
-from dvc.api import open as dvc_open, get_url
+##Emanuel 10/10/2025 Update of libraries for DVC and MD5 verification.
+# ====================================================================================
+# ===============================================                                   ==
+# Libraries for dataset verification with DVC. ==                                   ==
+# ===============================================                                   ==
+from pathlib import Path  # Cross-platform path handling                            ==
+from typing import Dict, Tuple, Optional  # Optional type hints for better clarity  ==
+import os  # File system and environment variable handling                          ==
+import yaml  # Read .dvc (YAML) pointer files                                       ==
+import hashlib  # Compute MD5 hashes to verify data integrity                       ==
+import pandas as pd  # Read and manage tabular data                                 ==
+import subprocess    # Execute SO commands                                          ==
+# ====================================================================================
+#from dvc.repo import Repo
+#from dvc.api import open as dvc_open, get_url
 import logging
 
 # Set up logging
@@ -46,17 +53,18 @@ def get_repo_root() -> str:
     logger.warning(f"Git repo not found, using current directory: {current}")
     return str(current)
 
-
-def ensure_repo_ready(repo_root: str = None) -> None:
+##Emanuel 10/10/2025 Updated error that cause a crash if file was not local at the machine.
+def ensure_repo_ready(repo_root: str = "/work") -> None:
     """
-    Verify that repo_root is a valid Git + DVC project.
-
-    Args:
-        repo_root: Path to repository root (auto-detected if None)
+    Verifies that:
+    - `repo_root` is a valid project folder with Git and DVC.
+    - Directory `repo_root` exists.
+    - It contains a `.git` subdirectory (it's a Git repo).
+    - It contains a `.dvc` subdirectory (it's a DVC repo).
 
     Raises:
-        FileNotFoundError: If repo_root doesn't exist
-        RuntimeError: If .git or .dvc is missing
+    - FileNotFoundError if `repo_root` does not exist.
+    - RuntimeError if `.git` or `.dvc` is missing.
     """
     if repo_root is None:
         repo_root = get_repo_root()
@@ -73,14 +81,15 @@ def ensure_repo_ready(repo_root: str = None) -> None:
 
 def _md5_file(path: str, chunk_size: int = 1024 * 1024) -> str:
     """
-    Calculate MD5 hash of a file to verify integrity against DVC metadata.
+    Computes the MD5 hash of a file by streaming it from disk to verify integrity
+    against the value stored by DVC in the `.dvc` pointer (default md5-based cache).
 
-    Args:
-        path: Absolute path to file
-        chunk_size: Read chunk size in bytes (default 1 MB)
+    Parameters:
+    - path: absolute file path.
+    - chunk_size: read block size in bytes (default 1 MB).
 
     Returns:
-        MD5 hash hex string
+    - Hex MD5 string of the file content.
     """
     h = hashlib.md5()
     with open(path, "rb") as f:
@@ -91,13 +100,21 @@ def _md5_file(path: str, chunk_size: int = 1024 * 1024) -> str:
 
 def _read_expected_md5_from_dvc(pointer_path: str) -> Optional[str]:
     """
-    Read expected MD5 from a .dvc pointer file.
+    Reads the expected MD5 from a single-file `.dvc` pointer.
 
-    Args:
-        pointer_path: Absolute path to .dvc file
+    `.dvc` format:
+      - md5: <hash>
+      - hash: md5
+      - path: <file_name>
+
+    Parameters:
+    - pointer_path: absolute path to the `.dvc` file.
 
     Returns:
-        MD5 hash if found, None otherwise
+    - The MD5 string if present, or None if the pointer does not exist / lacks md5.
+
+    Use:
+    - Compare the expected MD5 from `.dvc` with the actual local file MD5.
     """
     if not os.path.exists(pointer_path):
         return None
@@ -112,106 +129,164 @@ def _read_expected_md5_from_dvc(pointer_path: str) -> Optional[str]:
     out = outs[0]
     return out.get("md5") or out.get("checksum") or None
 
+##Emanuel 10/10/2025 Obsoleted function
+#def dvc_get_resolved_url(path_repo_rel: str, repo_root: str = None) -> str:
 
-def dvc_get_resolved_url(path_repo_rel: str, repo_root: str = None) -> str:
+def _dvc_pull_target(path_repo_rel: str, repo_root: str = "/work") -> None:
     """
-    Resolve remote URL of DVC-tracked output (e.g., s3://.../<hash>).
+    Runs `dvc pull <path>` or `<path>.dvc` to materialize the correct version from the remote (S3)
+    into the local workspace/cache. Raises if it fails (credentials, permissions, etc.).
 
-    Args:
-        path_repo_rel: Repository-relative path to file
-        repo_root: Repository root (auto-detected if None)
-
-    Returns:
-        URL to remote blob location
+    Parameters:
+    - path_repo_rel: repo-relative path to fetch (e.g., "data/raw/file.csv").
+    - repo_root: repo root (e.g., "/work").
     """
-    if repo_root is None:
-        repo_root = get_repo_root()
+# Build possible targets
+    dvc_pointer = os.path.join(repo_root, path_repo_rel + ".dvc")
+    if os.path.exists(dvc_pointer):
+        target = path_repo_rel + ".dvc"
+    else:
+        target = path_repo_rel
 
-    with Repo.open(repo_root):
-        return get_url(path_repo_rel, repo=repo_root)
+    # Try pulling
+    result = subprocess.run(
+        ["dvc", "pull", "--quiet", target],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+
+    # Raise if failed
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to run 'dvc pull {target}':\n"
+            f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        )
 
 
 def dvc_read_csv_verified(
     path_repo_rel: str,
-    repo_root: str = None,
+    repo_root: str = None, #"/work",
     prefer_dvc: bool = False,
     verify_local_md5: bool = True,
     pandas_read_csv_kwargs: Optional[Dict] = None,
 ) -> Tuple[pd.DataFrame, str]:
     """
-    Read DVC-tracked CSV with integrity verification.
+    Read a DVC-versioned CSV ensuring integrity when reading locally.
 
     Strategy:
-    - If prefer_dvc=True: Always read via DVC (max fidelity). Returns ("dvc").
-    - If prefer_dvc=False:
-        1) If local file exists and verify_local_md5=True: compare MD5
-           - Match: read local (fast) -> ("local")
-           - No match: fallback to DVC -> ("dvc")
-        2) If file doesn't exist: read via DVC -> ("dvc")
+    - If `prefer_dvc=True`: force fetching the official version with `dvc pull`
+      and then read locally. Returns ("pulled").
+    - If `prefer_dvc=False`:
+        1) If the local file exists and `verify_local_md5=True`, compare local MD5
+           with the expected MD5 from the `.dvc` pointer.
+           * If equal -> read local (fast). Returns ("local").
+           * If NOT equal -> run `dvc pull` and read the official version. Returns ("pulled").
+        2) If the file does NOT exist -> run `dvc pull` and read the official version. Returns ("pulled").
 
-    Args:
-        path_repo_rel: Repository-relative path to CSV
-        repo_root: Repository root (auto-detected if None)
-        prefer_dvc: Force DVC reading (ignore local file)
-        verify_local_md5: Validate local MD5 before trusting
-        pandas_read_csv_kwargs: Additional kwargs for pd.read_csv()
+    Parameters:
+    - path_repo_rel: repo-relative CSV path (e.g., "data/raw/file.csv").
+    - repo_root: repo root (e.g., "/work").
+    - prefer_dvc: if True, ignore local state and fetch official version with `dvc pull`.
+    - verify_local_md5: if True, validate local MD5 before trusting local read.
+    - pandas_read_csv_kwargs: kwargs for `pandas.read_csv()` (sep, encoding, etc.).
 
     Returns:
-        Tuple of (DataFrame, source) where source in {"local", "dvc"}
+    - (df, source) where source ∈ {"local", "pulled"} describing the read source.
 
-    Raises:
-        Propagates errors if file not accessible locally or remotely
+    Exceptions:
+    - Raises if the file cannot be materialized from the remote (credentials,
+      permissions, or missing blob).
     """
     if repo_root is None:
         repo_root = get_repo_root()
 
-    ensure_repo_ready(repo_root)
 
+    ensure_repo_ready(repo_root)
     if pandas_read_csv_kwargs is None:
         pandas_read_csv_kwargs = {}
 
     local_path = os.path.join(repo_root, path_repo_rel)
-    dvc_pointer = local_path + ".dvc"
+    dvc_pointer = local_path + ".dvc"  # e.g., data/raw/file.csv.dvc
+    expected_md5 = _read_expected_md5_from_dvc(dvc_pointer)
 
-    # Force DVC reading
+    # Option: force “official” read by fetching from S3
     if prefer_dvc:
-        logger.info(f"Reading via DVC (forced): {path_repo_rel}")
-        with Repo.open(repo_root):
-            with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
-                df = pd.read_csv(f, **pandas_read_csv_kwargs)
-        logger.info(f"Loaded via DVC: {df.shape}")
-        return df, "dvc"
+        logger.info(f"Reading via DVC (forced): {path_repo_rel}") ##Added for Alexis
+        _dvc_pull_target(path_repo_rel, repo_root)
+        # Note: when forcing, we don’t compare MD5; we assume `dvc pull` fetched the official version.
+        logger.info(f"Loaded via DVC: {df.shape}") ##Added for Alexis
+        return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+
+    # If a local file exists, decide based on MD5
+    if os.path.exists(local_path):
+        if verify_local_md5 and expected_md5:
+            try:
+                md5_local = _md5_file(local_path)
+                if md5_local == expected_md5:
+                    logger.info(f"Reading local file (MD5 verified): {path_repo_rel}") ##Added for Alexis
+                    # Note: “MD5 OK: local matches .dvc”
+                    # Use the local version (faster) because it’s identical to the “official” one.
+                    logger.info(f"Loaded from local: {df.shape}") ##Added for Alexis
+                    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "local"
+                else:
+                    # MD5 differs: local != .dvc → run dvc pull
+                    logger.warning(f"MD5 mismatch: expected {expected}, got {actual}") ##Added for Alexis
+                    _dvc_pull_target(path_repo_rel, repo_root)
+                    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+            except Exception:
+                # Any issue during the check → ensure consistency with a pull
+                logger.warning(f"MD5 verification failed: {e}")
+                _dvc_pull_target(path_repo_rel, repo_root)
+                return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+        else:
+            # Local read without MD5 verification
+            return pd.read_csv(local_path, **pandas_read_csv_kwargs), "local"
+
+    # If no local file, fetch the official version
+    _dvc_pull_target(path_repo_rel, repo_root)
+    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+    
+##########################################    
+#    # Force DVC reading
+#    if prefer_dvc:
+#        logger.info(f"Reading via DVC (forced): {path_repo_rel}")
+#        with Repo.open(repo_root):
+#            with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
+#                df = pd.read_csv(f, **pandas_read_csv_kwargs)
+#        logger.info(f"Loaded via DVC: {df.shape}")
+#        return df, "dvc"
 
     # Try local read with MD5 verification
-    if os.path.exists(local_path):
-        if verify_local_md5:
-            expected = _read_expected_md5_from_dvc(dvc_pointer)
-            if expected:
-                try:
-                    actual = _md5_file(local_path)
-                    if actual == expected:
-                        logger.info(f"Reading local file (MD5 verified): {path_repo_rel}")
-                        df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
-                        logger.info(f"Loaded from local: {df.shape}")
-                        return df, "local"
-                    else:
-                        logger.warning(f"MD5 mismatch: expected {expected}, got {actual}")
-                except Exception as e:
-                    logger.warning(f"MD5 verification failed: {e}")
-        else:
-            # No verification, read local directly
-            logger.info(f"Reading local file (no verification): {path_repo_rel}")
-            df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
-            logger.info(f"Loaded from local: {df.shape}")
-            return df, "local"
+#    if os.path.exists(local_path):
+#        if verify_local_md5:
+#            expected = _read_expected_md5_from_dvc(dvc_pointer)
+#            if expected:
+#                try:
+#                    actual = _md5_file(local_path)
+#                    if actual == expected:
+#                        logger.info(f"Reading local file (MD5 verified): {path_repo_rel}")
+#                        df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+#                        logger.info(f"Loaded from local: {df.shape}")
+#                        return df, "local"
+#                    else:
+#                        logger.warning(f"MD5 mismatch: expected {expected}, got {actual}")
+#                except Exception as e:
+#                    logger.warning(f"MD5 verification failed: {e}")
+#        else:
+#            # No verification, read local directly
+#            logger.info(f"Reading local file (no verification): {path_repo_rel}")
+#            df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+#            logger.info(f"Loaded from local: {df.shape}")
+#            return df, "local"
 
     # Fallback: read via DVC
-    logger.info(f"Reading via DVC (fallback): {path_repo_rel}")
-    with Repo.open(repo_root):
-        with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
-            df = pd.read_csv(f, **pandas_read_csv_kwargs)
-    logger.info(f"Loaded via DVC: {df.shape}")
-    return df, "dvc"
+#    logger.info(f"Reading via DVC (fallback): {path_repo_rel}")
+#    with Repo.open(repo_root):
+#        with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
+#            df = pd.read_csv(f, **pandas_read_csv_kwargs)
+#    logger.info(f"Loaded via DVC: {df.shape}")
+#    return df, "dvc"
 
 
 # Convenience function with config integration
