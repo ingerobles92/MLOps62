@@ -3,13 +3,12 @@
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.13-blue)
 ![Docker](https://img.shields.io/badge/docker-compose-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 **Team:** MLOps 62
 
 **Project:** Workforce Absenteeism Prediction using Machine Learning
 
-## ✨ Overview
+## Overview
 
 This project develops a machine learning system to predict employee absenteeism hours, enabling proactive workforce planning and targeted HR interventions.The development of this project include data versioning, EDA, preprocessing, experiment tracking, and model training/deployment.
 
@@ -234,14 +233,6 @@ Install inside Docker automatically via Compose.
 - Never commit `.env` or credentials.
 - Limit IAM permissions to the required S3 paths (`mlops/*` is enough).
 - Rotate keys when needed.
-
----
-
-## 📈 Roadmap (suggested)
-- Add CI (lint + tests + DVC checks)
-- Register & serve a baseline model (MLflow Model Registry)
-- Automate data validation (Evidently) & drift monitoring
-- Optionally: move MLflow backend store to a managed RDB (RDS)
 
 ---
 
