@@ -106,6 +106,32 @@ Commit `.env.example`, keep `.env` in `.gitignore`.
 
 ---
 
+**Known Issues when running the notebooks**:
+
+- DVC Pull Error: *dvc pull data/raw/work_absenteeism_modified.csv.dvc* might fail due to Docker not finding *~/.gitconfig* file, and creating it as a directory inside the container. If the file doesn't exist in the host machine, it can be created with the following commands:
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+If the file exists and the error persists, the following line should be changed in docker-compose.yml:
+```
+volumes:
+      - ./:/work
+      - ${HOME}/.ssh:/root/.ssh:ro
+      - ${HOME}/.gitconfig:/root/.gitconfig:ro
+```
+to:
+```
+volumes:
+      - ./:/work
+      - ~/.ssh:/root/.ssh:ro
+      - ~/.gitconfig:/root/.gitconfig:ro
+```
+That way Docker will find *~/.gitconfig* file and copy it.
+
+
+5. **Access MLflow UI:**
+- Open: http://localhost:9001
 ## Quickstart (Docker)
 ```bash
 # 1) Clone & enter
