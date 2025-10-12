@@ -31,3 +31,8 @@ s3fs
 # === Environment Management ===
 python-dotenv
 pyyaml
+
+# === Deep Learning ===
+torch
+keras
+tensorflow

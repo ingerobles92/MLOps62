@@ -17,6 +17,8 @@ AWS_REGION = "us-west-2"
 # ===== Data Paths =====
 RAW_DATA_PATH = "data/raw/work_absenteeism_modified.csv"
 PROCESSED_DATA_PATH = "data/processed/"
+CLEAN_DATA_FILE = "work_absenteeism_clean_v1.0.csv"
+CLEAN_DATA_PATH = os.path.join(PROCESSED_DATA_PATH, CLEAN_DATA_FILE)
 INTERIM_DATA_PATH = "data/interim/"
 
 # ===== Model Configuration =====
@@ -68,8 +70,9 @@ FIGURE_SIZE = (12, 6)
 COLOR_PALETTE = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#6C464E']
 PLOT_STYLE = 'seaborn-v0_8-darkgrid'
 
-# ===== Target Variable =====
+# ===== Target Variables =====
 TARGET_COLUMN = 'Absenteeism time in hours'
+TARGET_COLUMN_MONTHLY = 'MonthlyAbsenceHours'
 
 # ===== Feature Groups =====
 CATEGORICAL_FEATURES = [
@@ -99,6 +102,7 @@ NUMERICAL_FEATURES = [
 
 # Features to drop (non-predictive or target)
 FEATURES_TO_DROP = ['ID', TARGET_COLUMN]
+FEATURES_TO_DROP_MONTHLY = ['ID', TARGET_COLUMN_MONTHLY]
 
 # ===== Logging Configuration =====
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

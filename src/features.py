@@ -176,7 +176,8 @@ class AbsenteeismFeatureEngine:
     def prepare_for_modeling(
         self,
         df: pd.DataFrame,
-        scale_features: bool = True
+        scale_features: bool = True,
+        monthly_model: bool = False
     ) -> Tuple[pd.DataFrame, pd.Series]:
         """
         Prepare data for machine learning models.
@@ -191,8 +192,12 @@ class AbsenteeismFeatureEngine:
         logger.info("Preparing data for modeling...")
 
         # Separate features and target
-        X = df.drop(config.FEATURES_TO_DROP, axis=1, errors='ignore')
-        y = df[config.TARGET_COLUMN]
+        if not monthly_model:
+            X = df.drop(config.FEATURES_TO_DROP, axis=1, errors='ignore')
+            y = df[config.TARGET_COLUMN]
+        else:
+            X = df.drop(config.FEATURES_TO_DROP_MONTHLY, axis=1, errors='ignore')
+            y = df[config.TARGET_COLUMN_MONTHLY]
 
         # Drop the categorical feature columns (keep encoded versions)
         categorical_feature_cols = [

@@ -14,6 +14,13 @@ services:
     command: bash -lc "\
       jupyter lab --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --allow-root & \
       tail -f /dev/null"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   mlflow:
     image: python:3.13-slim
