@@ -450,6 +450,110 @@ MLOps62/
          ```
       That way Docker will find *~/.gitconfig* file and copy it.
 
+- **VS Code Setup**
+
+   We use Visual Studio Code (VS Code) as the main editor for development, notebooks, and debugging inside the Docker/WSL environment.
+
+   1. **Install VS Code**
+
+      - Windows
+         1. Download and install Visual Studio Code from https://code.visualstudio.com/ (use the User Installer for Windows).
+         2. During installation, allow the options:
+            - "Add 'Open with Code' action to Windows Explorer"
+            - "Add to PATH"
+         3. After installation, open VS Code normally (from Start Menu).
+
+      - macOS
+         1. Download the `.dmg` installer from https://code.visualstudio.com/ and drag `Visual Studio Code.app` into `Applications`.
+         2. (Optional) Enable the `code` command in the terminal:
+            - Open VS Code.
+            - Press `Cmd+Shift+P`, type `Shell Command: Install 'code' command in PATH`, hit Enter.
+            - After that you can run `code .` in any folder.
+
+      - Linux (Ubuntu)
+         1. From terminal:
+            ```bash
+            sudo apt update
+            sudo apt install wget gpg -y
+            wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/ms_vscode.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ms_vscode.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+            sudo apt update
+            sudo apt install code -y
+            ```
+         2. After installation, you can launch with:
+            ```bash
+            code
+            ```
+
+   2. VS Code + WSL (Windows only)
+
+      If you are on Windows and developing inside Ubuntu (WSL 2), you should not open the repo from `C:\...`.  
+      Instead, open the project directly from inside WSL so that VS Code attaches to Linux correctly.
+
+         1. In Windows, open VS Code.
+         2. Install the extension: **"WSL"** (a.k.a. "Remote Developer").
+         3. Open a WSL terminal and go to the project:
+            ```bash
+            cd /home/<user>/MLOps62
+            code .
+            ```
+            This will:
+            - Launch VS Code "connected" to your WSL Ubuntu.
+            - Let you edit files that live under `/home/<user>/MLOps62`.
+            - Avoid slow performance and permission issues from `/mnt/c/...`.
+
+      You should see `[WSL: Ubuntu-24.04]` in the bottom-left of VS Code.  
+      That means you are editing the Linux filesystem directly, which is what we want for Docker/DVC/MLflow.
+
+   3. Required VS Code extensions
+
+      Each developer should install (at minimum) the following extensions in VS Code:
+
+      - **Python**
+      - Language support, linting, debugging, Jupyter integration.
+
+      - **Jupyter**
+      - Lets you open and run `.ipynb` notebooks directly in VS Code (helpful even if you also use JupyterLab in the container).
+
+      - **Docker**
+      - Lets you see running containers, images, logs, and open a shell into containers.
+
+      - **YAML**
+      - Syntax highlighting and validation for `docker-compose.yml`, `.github/workflows`, etc.
+
+      - **GitLens**
+      - Shows who changed what, commit history, blame, etc. Useful for collaboration.
+
+      - **Remote Developer** (Windows only)
+      - Required to edit code directly in Ubuntu/WSL and keep file permissions and paths consistent with Docker.
+
+      - **markdownlint**
+      - Helps keep the README consistent.
+      
+      - **Indent-Rainbow**
+      - Helps visualize code blocks / YAML indentation.
+
+   4. Opening the project in VS Code
+
+      - Windows + WSL:
+         ```bash
+         cd /home/<user>/MLOps62
+         code .
+         ```
+
+      - macOS / Linux:
+         ```bash
+         cd /path/to/MLOps62
+         code .
+         ```
+
+      After opening the repo in VS Code:
+      - You should be able to edit `README.md`.
+      - You should be able to view and edit notebooks under `notebooks/`.
+      - You should be able to inspect `docker-compose.yml`.
+      - You should see Git integration (your current branch, pending changes, etc.).
+
+      This confirms your editor is correctly connected to the project environment.
 
 ---
 
