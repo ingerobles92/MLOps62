@@ -70,6 +70,8 @@ MLOps62/
 │   ├── processed              <- The final, canonical data sets for modeling (DVC pointers only in Git).
 │   └── raw                    <- The original, immutable data dump.
 │
+├── docs                       <- A default mkdocs project; see www.mkdocs.org for details
+│
 ├── models                     <- Trained and serialized models, model predictions, or model summaries
 │
 ├── notebooks                  <- Jupyter notebooks. Naming e.g.`1.0-jqp-initial-data-exploration`.
@@ -86,9 +88,27 @@ MLOps62/
 ├── reports                    <- Generated analysis as HTML, PDF, LaTeX, etc.
 │   └── figures                <- Generated graphics and figures to be used in reporting
 │
+├── requirements.txt           <- The requirements file for reproducing the analysis environment, e.g.
+│                                 generated with `pip freeze > requirements.txt`
+│
 ├── scripts                    <- Helpers to automatically run a series of commands.
 │
 ├── SRC                        <- Source code for use in this project.
+│   │
+│   ├── __init__.py            <- Makes Absenteeism_Prediction a Python module
+│   │
+│   ├── config.py              <- Store useful variables and configuration
+│   │
+│   ├── dataset.py             <- Scripts to download or generate data
+│   │
+│   ├── features.py            <- Code to create features for modeling
+│   │
+│   ├── modeling                
+│   │   ├── __init__.py 
+│   │   ├── predict.py          <- Code to run model inference with trained models          
+│   │   └── train.py            <- Code to train models
+│   │
+│   └── plots.py                <- Code to create visualizations
 │                
 ├── .env.example               <- Template for env vars for AWS services.
 ├── .gitignore                 <- Defines which files and folders Git should ignore.
@@ -535,25 +555,50 @@ MLOps62/
 
    4. Opening the project in VS Code
 
-      - Windows + WSL:
-         ```bash
-         cd /home/<user>/MLOps62
-         code .
-         ```
+      1. Launch VSCode
+         
+         - Windows + WSL:
+            ```bash
+            cd /home/<user>/MLOps62
+            code .
+            ```
+         - macOS / Linux:
+            ```bash
+            cd /path/to/MLOps62
+            code .
+            ```
 
-      - macOS / Linux:
-         ```bash
-         cd /path/to/MLOps62
-         code .
-         ```
+      2. In VS Code, open the Command Palette:
+            - **Windows/Linux:** `Ctrl + Shift + P`
+            - **macOS:** `Cmd + Shift + P`
 
-      After opening the repo in VS Code:
-      - You should be able to edit `README.md`.
-      - You should be able to view and edit notebooks under `notebooks/`.
-      - You should be able to inspect `docker-compose.yml`.
-      - You should see Git integration (your current branch, pending changes, etc.).
+      3. Type and select:
+            ```
+            Dev Containers: Attach to Running Container...
+            ```
+         
+         From the list, **select the container named**:
+            ```
+            /mlops-app
+            ```
+         *(Do not select `/mlflow`, as that container is only for experiment tracking.)*
 
-      This confirms your editor is correctly connected to the project environment.
+      4. VS Code will open a **new window** attached to the container environment.
+         - Go to **File → Open Folder...**
+         - Enter:
+            ```
+            /work
+            ```
+         - Click **OK**.
+
+         This will load your project structure.
+
+      5. Confirm everything is working from VSCode terminal:
+            ```bash
+            cookiecutter --version
+            dvc --version
+            mlflow --version
+            ```
 
 ---
 
