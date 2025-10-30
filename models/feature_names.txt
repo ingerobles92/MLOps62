@@ -1,0 +1,23 @@
+ID
+Reason for absence
+Month of absence
+Day of the week
+Seasons
+Transportation expense
+Distance from Residence to Work
+Service time
+Age
+Work load Average/day
+Hit target
+Disciplinary failure
+Education
+Son
+Social drinker
+Social smoker
+Pet
+Weight
+Height
+Body mass index
+Has_Disciplinary_Failure
+Is_Social_Drinker
+Is_Social_Smoker
