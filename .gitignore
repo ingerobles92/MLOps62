@@ -43,3 +43,15 @@ data/*.csv
 # Nunca ignores los punteros de DVC
 !data/**/*.dvc
 !data/*.dvc
+
+# Credentials and secrets (NEVER COMMIT)
+credentials.txt
+*.credentials
+*.pem
+*.key
+.aws/
+aws-credentials/
+
+# Logs
+*.log
+logs/
