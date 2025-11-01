@@ -1,41 +1,43 @@
 # === Core PyData stack ===
-numpy
-pandas
-scipy
-matplotlib
-seaborn
-scikit-learn
+numpy==2.3.4
+pandas==2.3.3
+scipy==1.16.2
+matplotlib==3.10.7
+seaborn==0.13.2
+scikit-learn==1.7.2
 
 # === Notebooks ===
-jupyterlab
-ipykernel
+jupyterlab==4.4.10
+ipykernel==7.0.1
 
 # === API ===
-fastapi
-uvicorn[standard]
+fastapi==0.120.0
+uvicorn[standard]==0.38.0
+flask==3.1.2
+gunicorn==21.2.0
 
 # === Experiment tracking / monitoring ===
-mlflow
-evidently
+mlflow==3.5.1
+evidently==0.7.15
 
 # === Testing ===
-pytest
+pytest==8.4.2
 
 # === Herramientas de scaffolding (dev) ===
-cookiecutter-data-science
+cookiecutter-data-science==2.3.0
 
 # === DVC / S3 (stack estable del equipo) ===
 dvc[s3]==3.63.0
-boto3<1.40.20
-botocore<1.40.20
-s3transfer<0.14.0
-s3fs
+boto3==1.40.18
+botocore==1.40.18
+s3transfer==0.13.1
+s3fs==2025.9.0
 
 # === Environment Management ===
-python-dotenv
-pyyaml
+python-dotenv==1.1.1
+pyyaml==6.0.3
 
 # === Deep Learning ===
-torch
-keras
-tensorflow
+torch==2.9.0
+keras==3.11.3
+tensorflow==2.20.0
