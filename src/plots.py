@@ -31,51 +31,44 @@ def plot_target_distribution(
 ) -> Tuple[plt.Figure, np.ndarray]:
     """
     Create comprehensive target variable analysis with 4 subplots.
-
-    Args:
-        df: Dataframe containing target variable
-        target_col: Name of target column
-        save_path: Optional path to save figure
-
-    Returns:
-        Tuple of (figure, axes)
     """
     logger.info(f"Creating target distribution plot for {target_col}")
+
+    # --- Sanitize: asegurar que sea numérico y sin NaN
+    s = pd.to_numeric(df[target_col], errors="coerce").dropna()
 
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     fig.suptitle('Target Variable Distribution Analysis', fontsize=16, fontweight='bold')
 
-    # Histogram with mean line
-    axes[0, 0].hist(df[target_col], bins=30, color=config.COLOR_PALETTE[0],
+    # 1) Histogram con media/mediana
+    axes[0, 0].hist(s.values, bins=30,
+                    color=getattr(config, "COLOR_PALETTE", ["#4c78a8","#f58518","#54a24b"])[0],
                     edgecolor='black', alpha=0.7)
-    axes[0, 0].axvline(df[target_col].mean(), color='red',
-                       linestyle='--', linewidth=2,
-                       label=f'Mean: {df[target_col].mean():.2f}h')
-    axes[0, 0].axvline(df[target_col].median(), color='green',
-                       linestyle='--', linewidth=2,
-                       label=f'Median: {df[target_col].median():.2f}h')
+    axes[0, 0].axvline(s.mean(), color='red',   linestyle='--', linewidth=2, label=f'Mean: {s.mean():.2f}h')
+    axes[0, 0].axvline(s.median(), color='green', linestyle='--', linewidth=2, label=f'Median: {s.median():.2f}h')
     axes[0, 0].set_xlabel('Hours of Absenteeism')
     axes[0, 0].set_ylabel('Frequency')
     axes[0, 0].set_title('Histogram')
     axes[0, 0].legend()
     axes[0, 0].grid(alpha=0.3)
 
-    # Boxplot
-    bp = axes[0, 1].boxplot(df[target_col], patch_artist=True, vert=True)
-    bp['boxes'][0].set_facecolor(config.COLOR_PALETTE[1])
+    # 2) Boxplot (pasar lista de arrays)
+    bp = axes[0, 1].boxplot([s.values], patch_artist=True, vert=True)
+    bp['boxes'][0].set_facecolor(getattr(config, "COLOR_PALETTE", ["#4c78a8","#f58518","#54a24b"])[1])
     axes[0, 1].set_ylabel('Hours')
     axes[0, 1].set_title('Boxplot - Outlier Detection')
     axes[0, 1].grid(alpha=0.3)
 
-    # Q-Q Plot
+    # 3) Q-Q Plot
     from scipy import stats
-    stats.probplot(df[target_col], dist="norm", plot=axes[1, 0])
+    stats.probplot(s.values, dist="norm", plot=axes[1, 0])
     axes[1, 0].set_title('Q-Q Plot - Normality Check')
     axes[1, 0].grid(alpha=0.3)
 
-    # Log-transformed distribution
-    log_data = np.log1p(df[target_col])
-    axes[1, 1].hist(log_data, bins=30, color=config.COLOR_PALETTE[2],
+    # 4) Distribución log (evitar negativos)
+    log_data = np.log1p(np.clip(s.values, a_min=0, a_max=None))
+    axes[1, 1].hist(log_data, bins=30,
+                    color=getattr(config, "COLOR_PALETTE", ["#4c78a8","#f58518","#54a24b"])[2],
                     edgecolor='black', alpha=0.7)
     axes[1, 1].set_xlabel('Log(Hours + 1)')
     axes[1, 1].set_ylabel('Frequency')
@@ -84,11 +77,13 @@ def plot_target_distribution(
 
     plt.tight_layout()
 
-    if save_path:
+    # Guardado opcional
+    if save_path and isinstance(save_path, (str, os.PathLike)):
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         logger.info(f"Saved plot to {save_path}")
 
     return fig, axes
+
 
 
 def plot_correlation_matrix(
@@ -253,52 +248,61 @@ def plot_numerical_relationship(
 ) -> plt.Figure:
     """
     Analyze relationship between numerical feature and target.
-
-    Args:
-        df: Dataframe
-        num_col: Numerical column name
-        target_col: Target column name
-        figsize: Figure size
-        save_path: Optional path to save figure
-
-    Returns:
-        matplotlib Figure
     """
     logger.info(f"Creating numerical analysis for {num_col}")
+
+    # --- Ensure numeric inputs (minimal, non-invasive) ---
+    # Convert to numeric and drop rows with NaN in either column.
+    x = pd.to_numeric(df[num_col], errors="coerce")
+    y = pd.to_numeric(df[target_col], errors="coerce")
+    m = pd.DataFrame({num_col: x, target_col: y}).dropna()
+
+    # Fallback palette if not present
+    palette = getattr(config, "COLOR_PALETTE", ["#4c78a8", "#f58518", "#54a24b"])
 
     fig, axes = plt.subplots(1, 3, figsize=figsize)
     fig.suptitle(f'Analysis: {num_col} vs {target_col}', fontsize=14, fontweight='bold')
 
-    # Histogram
-    axes[0].hist(df[num_col], bins=30, color=config.COLOR_PALETTE[0], edgecolor='black', alpha=0.7)
+    # 1) Histogram
+    # Use the numeric-cleaned series to avoid dtype issues.
+    axes[0].hist(m[num_col].values, bins=30, color=palette[0], edgecolor='black', alpha=0.7)
     axes[0].set_title(f'Distribution of {num_col}')
     axes[0].set_xlabel(num_col)
     axes[0].set_ylabel('Frequency')
     axes[0].grid(alpha=0.3)
 
-    # Scatter plot
-    axes[1].scatter(df[num_col], df[target_col], alpha=0.5, color=config.COLOR_PALETTE[1])
+    # 2) Scatter plot
+    axes[1].scatter(m[num_col].values, m[target_col].values, alpha=0.5, color=palette[1])
     axes[1].set_title(f'{num_col} vs {target_col}')
     axes[1].set_xlabel(num_col)
     axes[1].set_ylabel(target_col)
     axes[1].grid(alpha=0.3)
 
-    # Correlation info
-    corr = df[[num_col, target_col]].corr().iloc[0, 1]
-    axes[1].text(0.05, 0.95, f'Correlation: {corr:.3f}',
+    # Correlation info (guard against empty/constant data)
+    try:
+        corr = m[[num_col, target_col]].corr().iloc[0, 1]
+    except Exception:
+        corr = np.nan
+    axes[1].text(0.05, 0.95, f'Correlation: {corr:.3f}' if pd.notna(corr) else 'Correlation: n/a',
                  transform=axes[1].transAxes, fontsize=10,
                  verticalalignment='top',
                  bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
-    # Binned average
-    bins = pd.qcut(df[num_col], q=10, duplicates='drop')
-    binned_means = df.groupby(bins)[target_col].mean()
-    binned_means.plot(kind='bar', ax=axes[2], color=config.COLOR_PALETTE[2])
-    axes[2].set_title('Average Absenteeism by Decile')
-    axes[2].set_xlabel(f'{num_col} (binned)')
-    axes[2].set_ylabel(f'Mean {target_col}')
-    axes[2].tick_params(axis='x', rotation=45)
-    axes[2].grid(alpha=0.3)
+    # 3) Binned average (robust to few/constant unique values)
+    ax2 = axes[2]
+    try:
+        bins = pd.qcut(m[num_col], q=10, duplicates='drop')
+        binned_means = m.groupby(bins, observed=False)[target_col].mean()
+        binned_means.plot(kind='bar', ax=ax2, color=palette[2])
+        ax2.set_title('Average Absenteeism by Decile')
+        ax2.set_xlabel(f'{num_col} (binned)')
+        ax2.set_ylabel(f'Mean {target_col}')
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.grid(alpha=0.3)
+    except Exception as e:
+        # If binning fails (e.g., not enough unique values), show a message instead of crashing.
+        ax2.text(0.5, 0.5, f"Could not compute bins:\n{e}", ha='center', va='center')
+        ax2.axis('off')
 
     plt.tight_layout()
 
@@ -307,6 +311,7 @@ def plot_numerical_relationship(
         logger.info(f"Saved plot to {save_path}")
 
     return fig
+
 
 
 def plot_model_performance(
@@ -377,72 +382,107 @@ def create_eda_summary_dashboard(
     df: pd.DataFrame,
     save_path: Optional[str] = None
 ) -> plt.Figure:
-    """
-    Create comprehensive EDA dashboard with multiple visualizations.
-
-    Args:
-        df: Dataframe
-        save_path: Optional path to save figure
-
-    Returns:
-        matplotlib Figure
-    """
     logger.info("Creating EDA summary dashboard")
+
+    # Type correction
+    d = df.copy()
+
+    num_cols = [
+        config.TARGET_COLUMN,
+        'Age',
+        'Distance from Residence to Work',
+        'Body mass index',
+        'Work load Average/day'
+    ]
+    for c in num_cols:
+        if c in d.columns:
+            d[c] = pd.to_numeric(d[c], errors="coerce")
+
+    for c in ['Day of the week', 'Seasons']:
+        if c in d.columns:
+            d[c] = pd.to_numeric(d[c], errors="coerce")  # convert to numeric
+            d[c] = d[c].round().astype('Int64') 
+
+    palette = getattr(config, "COLOR_PALETTE", ["#4c78a8", "#f58518", "#54a24b", "#b279a2", "#9ecae9"])
 
     fig = plt.figure(figsize=(20, 12))
     gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
 
     # Target distribution
     ax1 = fig.add_subplot(gs[0, :])
-    df[config.TARGET_COLUMN].hist(bins=50, ax=ax1, color=config.COLOR_PALETTE[0], edgecolor='black')
+    ax1.hist(d[config.TARGET_COLUMN].dropna(), bins=50, color=palette[0], edgecolor='black')
     ax1.set_title('Target Variable Distribution', fontsize=14, fontweight='bold')
     ax1.set_xlabel('Absenteeism Hours')
     ax1.set_ylabel('Frequency')
 
-    # Day of week analysis
+    # Day of week analysis (si existe)
     ax2 = fig.add_subplot(gs[1, 0])
-    df.groupby('Day of the week')[config.TARGET_COLUMN].mean().plot(kind='bar', ax=ax2, color=config.COLOR_PALETTE[1])
-    ax2.set_title('Avg Absence by Day of Week')
-    ax2.set_xlabel('Day')
-    ax2.set_ylabel('Mean Hours')
+    if 'Day of the week' in d.columns:
+        d.groupby('Day of the week')[config.TARGET_COLUMN].mean().plot(kind='bar', ax=ax2, color=palette[1])
+        ax2.set_title('Avg Absence by Day of Week')
+        ax2.set_xlabel('Day')
+        ax2.set_ylabel('Mean Hours')
+    else:
+        ax2.text(0.5, 0.5, "Column 'Day of the week' not found", ha='center', va='center')
+        ax2.axis('off')
 
-    # Season analysis
+    # Season analysis (si existe)
     ax3 = fig.add_subplot(gs[1, 1])
-    df.groupby('Seasons')[config.TARGET_COLUMN].mean().plot(kind='bar', ax=ax3, color=config.COLOR_PALETTE[2])
-    ax3.set_title('Avg Absence by Season')
-    ax3.set_xlabel('Season')
-    ax3.set_ylabel('Mean Hours')
+    if 'Seasons' in d.columns:
+        d.groupby('Seasons')[config.TARGET_COLUMN].mean().plot(kind='bar', ax=ax3, color=palette[2])
+        ax3.set_title('Avg Absence by Season')
+        ax3.set_xlabel('Season')
+        ax3.set_ylabel('Mean Hours')
+    else:
+        ax3.text(0.5, 0.5, "Column 'Seasons' not found", ha='center', va='center')
+        ax3.axis('off')
 
-    # Age distribution
+    # Age distribution (si existe)
     ax4 = fig.add_subplot(gs[1, 2])
-    df['Age'].hist(bins=20, ax=ax4, color=config.COLOR_PALETTE[3], edgecolor='black')
-    ax4.set_title('Age Distribution')
-    ax4.set_xlabel('Age')
-    ax4.set_ylabel('Count')
+    if 'Age' in d.columns:
+        ax4.hist(d['Age'].dropna(), bins=20, color=palette[3], edgecolor='black')
+        ax4.set_title('Age Distribution')
+        ax4.set_xlabel('Age')
+        ax4.set_ylabel('Count')
+    else:
+        ax4.text(0.5, 0.5, "Column 'Age' not found", ha='center', va='center')
+        ax4.axis('off')
 
-    # Distance vs Absence
+    # Distance vs Absence (si existen)
     ax5 = fig.add_subplot(gs[2, 0])
-    ax5.scatter(df['Distance from Residence to Work'], df[config.TARGET_COLUMN],
-                alpha=0.5, color=config.COLOR_PALETTE[4])
-    ax5.set_title('Distance vs Absence')
-    ax5.set_xlabel('Distance (km)')
-    ax5.set_ylabel('Absence Hours')
+    if 'Distance from Residence to Work' in d.columns:
+        m = d[['Distance from Residence to Work', config.TARGET_COLUMN]].dropna()
+        ax5.scatter(m['Distance from Residence to Work'], m[config.TARGET_COLUMN], alpha=0.5, color=palette[4])
+        ax5.set_title('Distance vs Absence')
+        ax5.set_xlabel('Distance (km)')
+        ax5.set_ylabel('Absence Hours')
+    else:
+        ax5.text(0.5, 0.5, "Column 'Distance from Residence to Work' not found", ha='center', va='center')
+        ax5.axis('off')
 
-    # BMI vs Absence
+    # BMI vs Absence (si existen)
     ax6 = fig.add_subplot(gs[2, 1])
-    ax6.scatter(df['Body mass index'], df[config.TARGET_COLUMN],
-                alpha=0.5, color=config.COLOR_PALETTE[0])
-    ax6.set_title('BMI vs Absence')
-    ax6.set_xlabel('BMI')
-    ax6.set_ylabel('Absence Hours')
+    if 'Body mass index' in d.columns:
+        m = d[['Body mass index', config.TARGET_COLUMN]].dropna()
+        ax6.scatter(m['Body mass index'], m[config.TARGET_COLUMN], alpha=0.5, color=palette[0])
+        ax6.set_title('BMI vs Absence')
+        ax6.set_xlabel('BMI')
+        ax6.set_ylabel('Absence Hours')
+    else:
+        ax6.text(0.5, 0.5, "Column 'Body mass index' not found", ha='center', va='center')
+        ax6.axis('off')
 
-    # Workload vs Absence
+    # Workload vs Absence (si existen)
     ax7 = fig.add_subplot(gs[2, 2])
-    ax7.scatter(df['Work load Average/day'], df[config.TARGET_COLUMN],
-                alpha=0.5, color=config.COLOR_PALETTE[1])
-    ax7.set_title('Workload vs Absence')
-    ax7.set_xlabel('Workload')
-    ax7.set_ylabel('Absence Hours')
+    if 'Work load Average/day' in d.columns:
+        m = d[['Work load Average/day', config.TARGET_COLUMN]].dropna()
+        ax7.scatter(m['Work load Average/day'], m[config.TARGET_COLUMN], alpha=0.5, color=palette[1])
+        ax7.set_title('Workload vs Absence')
+        ax7.set_xlabel('Workload')
+        ax7.set_ylabel('Absence Hours')
+    else:
+        ax7.text(0.5, 0.5, "Column 'Work load Average/day' not found", ha='center', va='center')
+        ax7.axis('off')
 
     fig.suptitle('Exploratory Data Analysis Dashboard', fontsize=18, fontweight='bold', y=0.995)
 
@@ -451,6 +491,7 @@ def create_eda_summary_dashboard(
         logger.info(f"Saved dashboard to {save_path}")
 
     return fig
+
 
 
 if __name__ == "__main__":

@@ -166,7 +166,7 @@ def _dvc_pull_target(path_repo_rel: str, repo_root: str = "/work") -> None:
 
 def dvc_read_csv_verified(
     path_repo_rel: str,
-    repo_root: str = None, #"/work",
+    repo_root: str = None,
     prefer_dvc: bool = False,
     verify_local_md5: bool = True,
     pandas_read_csv_kwargs: Optional[Dict] = None,
@@ -201,92 +201,50 @@ def dvc_read_csv_verified(
     if repo_root is None:
         repo_root = get_repo_root()
 
-
     ensure_repo_ready(repo_root)
     if pandas_read_csv_kwargs is None:
         pandas_read_csv_kwargs = {}
 
     local_path = os.path.join(repo_root, path_repo_rel)
-    dvc_pointer = local_path + ".dvc"  # e.g., data/raw/file.csv.dvc
+    dvc_pointer = local_path + ".dvc"
     expected_md5 = _read_expected_md5_from_dvc(dvc_pointer)
 
-    # Option: force “official” read by fetching from S3
+    # 1) Forzar lectura "oficial"
     if prefer_dvc:
-        logger.info(f"Reading via DVC (forced): {path_repo_rel}") ##Added for Alexis
+        logger.info(f"Reading via DVC (forced): {path_repo_rel}")
         _dvc_pull_target(path_repo_rel, repo_root)
-        # Note: when forcing, we don’t compare MD5; we assume `dvc pull` fetched the official version.
-        logger.info(f"Loaded via DVC: {df.shape}") ##Added for Alexis
-        return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+        df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+        logger.info(f"Loaded via DVC: {df_local.shape}")
+        return df_local, "pulled"
 
-    # If a local file exists, decide based on MD5
+    # 2) Usar archivo local si existe
     if os.path.exists(local_path):
         if verify_local_md5 and expected_md5:
             try:
                 md5_local = _md5_file(local_path)
                 if md5_local == expected_md5:
-                    logger.info(f"Reading local file (MD5 verified): {path_repo_rel}") ##Added for Alexis
-                    # Note: “MD5 OK: local matches .dvc”
-                    # Use the local version (faster) because it’s identical to the “official” one.
-                    logger.info(f"Loaded from local: {df.shape}") ##Added for Alexis
-                    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "local"
+                    logger.info(f"Reading local file (MD5 verified): {path_repo_rel}")
+                    df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+                    logger.info(f"Loaded from local: {df_local.shape}")
+                    return df_local, "local"
                 else:
-                    # MD5 differs: local != .dvc → run dvc pull
-                    logger.warning(f"MD5 mismatch: expected {expected}, got {actual}") ##Added for Alexis
+                    logger.warning(f"MD5 mismatch: expected {expected_md5}, got {md5_local}")
                     _dvc_pull_target(path_repo_rel, repo_root)
-                    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
-            except Exception:
-                # Any issue during the check → ensure consistency with a pull
+                    df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+                    return df_local, "pulled"
+            except Exception as e:
                 logger.warning(f"MD5 verification failed: {e}")
                 _dvc_pull_target(path_repo_rel, repo_root)
-                return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
+                df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+                return df_local, "pulled"
         else:
-            # Local read without MD5 verification
-            return pd.read_csv(local_path, **pandas_read_csv_kwargs), "local"
+            df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+            return df_local, "local"
 
-    # If no local file, fetch the official version
+    # 3) No hay archivo local → traer “oficial”
     _dvc_pull_target(path_repo_rel, repo_root)
-    return pd.read_csv(local_path, **pandas_read_csv_kwargs), "pulled"
-    
-##########################################    
-#    # Force DVC reading
-#    if prefer_dvc:
-#        logger.info(f"Reading via DVC (forced): {path_repo_rel}")
-#        with Repo.open(repo_root):
-#            with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
-#                df = pd.read_csv(f, **pandas_read_csv_kwargs)
-#        logger.info(f"Loaded via DVC: {df.shape}")
-#        return df, "dvc"
-
-    # Try local read with MD5 verification
-#    if os.path.exists(local_path):
-#        if verify_local_md5:
-#            expected = _read_expected_md5_from_dvc(dvc_pointer)
-#            if expected:
-#                try:
-#                    actual = _md5_file(local_path)
-#                    if actual == expected:
-#                        logger.info(f"Reading local file (MD5 verified): {path_repo_rel}")
-#                        df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
-#                        logger.info(f"Loaded from local: {df.shape}")
-#                        return df, "local"
-#                    else:
-#                        logger.warning(f"MD5 mismatch: expected {expected}, got {actual}")
-#                except Exception as e:
-#                    logger.warning(f"MD5 verification failed: {e}")
-#        else:
-#            # No verification, read local directly
-#            logger.info(f"Reading local file (no verification): {path_repo_rel}")
-#            df = pd.read_csv(local_path, **pandas_read_csv_kwargs)
-#            logger.info(f"Loaded from local: {df.shape}")
-#            return df, "local"
-
-    # Fallback: read via DVC
-#    logger.info(f"Reading via DVC (fallback): {path_repo_rel}")
-#    with Repo.open(repo_root):
-#        with dvc_open(path_repo_rel, repo=repo_root, mode="rb") as f:
-#            df = pd.read_csv(f, **pandas_read_csv_kwargs)
-#    logger.info(f"Loaded via DVC: {df.shape}")
-#    return df, "dvc"
+    df_local = pd.read_csv(local_path, **pandas_read_csv_kwargs)
+    return df_local, "pulled"
 
 
 # Convenience function with config integration

@@ -30,13 +30,17 @@ def test_single_prediction():
 
     # Sample employee data
     data = {
-        "Age": 35,
+        "ID": 1001,  # Added to match columns
+        "Reason for absence": 0,
+        "Month of absence": 7,
+        "Day of the week": 3,
+        "Seasons": 1,
+        "Transportation expense": 200,
         "Distance from Residence to Work": 15,
         "Service time": 10,
-        "Body mass index": 25.5,
+        "Age": 35,
         "Work load Average/day": 250,
         "Hit target": 95,
-        "Transportation expense": 200,
         "Disciplinary failure": 0,
         "Education": 1,
         "Son": 1,
@@ -45,11 +49,8 @@ def test_single_prediction():
         "Pet": 1,
         "Weight": 75,
         "Height": 175,
-        "Reason for absence": 0,
-        "Month of absence": 7,
-        "Day of the week": 3,
-        "Seasons": 1
-    }
+        "Body mass index": 25.5   
+            }
 
     print(f"Input data: {json.dumps(data, indent=2)}")
 
@@ -68,16 +69,21 @@ def test_batch_prediction():
     print("="*60)
 
     # Sample batch data (3 employees)
+    
     data = {
         "instances": [
             {
-                "Age": 35,
+                "ID": 1001,  # Added to match columns
+                "Reason for absence": 0,
+                "Month of absence": 7,
+                "Day of the week": 3,
+                "Seasons": 1,
+                "Transportation expense": 200,
                 "Distance from Residence to Work": 15,
                 "Service time": 10,
-                "Body mass index": 25.5,
+                "Age": 35,
                 "Work load Average/day": 250,
                 "Hit target": 95,
-                "Transportation expense": 200,
                 "Disciplinary failure": 0,
                 "Education": 1,
                 "Son": 1,
@@ -86,19 +92,20 @@ def test_batch_prediction():
                 "Pet": 1,
                 "Weight": 75,
                 "Height": 175,
-                "Reason for absence": 0,
-                "Month of absence": 7,
-                "Day of the week": 3,
-                "Seasons": 1
+                "Body mass index": 25.5  
             },
             {
-                "Age": 42,
+                "ID": 115,  # Added to match columns
+                "Reason for absence": 10,
+                "Month of absence": 12,
+                "Day of the week": 2,
+                "Seasons": 3,
+                "Transportation expense": 250,
                 "Distance from Residence to Work": 25,
                 "Service time": 15,
-                "Body mass index": 28.0,
+                "Age": 42,
                 "Work load Average/day": 280,
                 "Hit target": 90,
-                "Transportation expense": 250,
                 "Disciplinary failure": 0,
                 "Education": 2,
                 "Son": 2,
@@ -107,31 +114,29 @@ def test_batch_prediction():
                 "Pet": 0,
                 "Weight": 85,
                 "Height": 180,
-                "Reason for absence": 10,
-                "Month of absence": 12,
-                "Day of the week": 2,
-                "Seasons": 3
+                "Body mass index": 28  
             },
             {
-                "Age": 28,
-                "Distance from Residence to Work": 5,
-                "Service time": 3,
-                "Body mass index": 22.0,
-                "Work load Average/day": 220,
-                "Hit target": 98,
-                "Transportation expense": 150,
+                "ID": 231,  # Added to match columns
+                "Reason for absence": 2,
+                "Month of absence": 6,
+                "Day of the week": 2,
+                "Seasons": 3,
+                "Transportation expense": 500,
+                "Distance from Residence to Work": 50,
+                "Service time": 12,
+                "Age": 25,
+                "Work load Average/day": 250,
+                "Hit target": 100,
                 "Disciplinary failure": 0,
-                "Education": 1,
-                "Son": 0,
+                "Education": 2,
+                "Son": 3,
                 "Social drinker": 0,
                 "Social smoker": 0,
-                "Pet": 1,
-                "Weight": 65,
-                "Height": 170,
-                "Reason for absence": 0,
-                "Month of absence": 3,
-                "Day of the week": 4,
-                "Seasons": 4
+                "Pet": 3,
+                "Weight": 90,
+                "Height": 191,
+                "Body mass index": 25.5  
             }
         ]
     }

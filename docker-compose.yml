@@ -33,6 +33,11 @@ services:
       - ./.mlflow:/work/.mlflow
     env_file:
       - .env
+    environment:
+      # ← Permite llamadas desde otros contenedores y el host
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:*,localhost:*,127.0.0.1,host.docker.internal:*"
+      # (Opcional) CORS amplio si usas front-ends:
+      # MLFLOW_SERVER_CORS_ALLOWED_ORIGINS: "*"
     ports:
       - "9001:9001"
     command: bash -lc "\

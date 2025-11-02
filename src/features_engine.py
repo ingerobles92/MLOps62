@@ -42,6 +42,29 @@ class AbsenteeismFeatureEngine:
             Cleaned dataframe
         """
         logger.info("Starting data cleaning...")
+
+        # Ensure numeric dtypes early (minimal, non-invasive)
+        d = df.copy()
+
+        # Columns expected to be numeric
+        num_like = [
+            'ID', 'Reason for absence', 'Month of absence', 'Day of the week', 'Seasons',
+            'Transportation expense', 'Distance from Residence to Work', 'Service time',
+            'Age', 'Work load Average/day', 'Hit target', 'Disciplinary failure',
+            'Education', 'Son', 'Social drinker', 'Social smoker', 'Pet',
+            'Weight', 'Height', 'Body mass index',
+            'Absenteeism time in hours', 'mixed_type_col'
+        ]
+
+        for c in num_like:
+            if c in d.columns:
+                d[c] = pd.to_numeric(d[c], errors="coerce")  # strings -> NaN; "3.0" -> 3.0
+
+        # keep IDs as nullable integers if you need integer semantics
+        if 'ID' in d.columns:
+            d['ID'] = d['ID'].round().astype('Int64')
+
+        df = d
         df_clean = df.copy()
 
         # Remove extreme outliers in target variable

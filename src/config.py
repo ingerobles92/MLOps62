@@ -2,12 +2,16 @@
 Configuration for MLOps Team 62 - Absenteeism Prediction Project
 Author: Alexis Alduncin (Data Scientist)
 """
-
+from pathlib import Path
 import os
 
 # ===== MLflow Configuration =====
-MLFLOW_TRACKING_URI = "file:./mlruns"
-MLFLOW_EXPERIMENT_NAME = "absenteeism-team62"
+MLFLOW_TRACKING_URI = os.getenv(
+    "MLFLOW_TRACKING_URI",
+    "http://mlflow:9001" if os.path.exists("/work") else "http://localhost:9001",
+)
+
+MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "absenteeism-team62")
 
 # ===== AWS Configuration =====
 # AWS credentials are managed via environment variables or .env file
@@ -15,11 +19,23 @@ AWS_BUCKET = "s3://mlopsequipo62/mlops/"
 AWS_REGION = "us-west-2"
 
 # ===== Data Paths =====
-RAW_DATA_PATH = "data/raw/work_absenteeism_modified.csv"
-PROCESSED_DATA_PATH = "data/processed/"
-CLEAN_DATA_FILE = "work_absenteeism_clean_v1.0.csv"
-CLEAN_DATA_PATH = os.path.join(PROCESSED_DATA_PATH, CLEAN_DATA_FILE)
-INTERIM_DATA_PATH = "data/interim/"
+def _find_repo_root(start: Path = Path(__file__).resolve().parent.parent) -> Path:
+    p = start
+    for _ in range(8):
+        if (p / "data").exists() and (p / "src").exists():
+            return p
+        if (p / ".git").exists():
+            return p
+        p = p.parent
+    return Path("/work") if Path("/work").exists() else Path.cwd()
+
+REPO_ROOT = _find_repo_root()
+
+RAW_DATA_PATH        = str((REPO_ROOT / "data/raw/work_absenteeism_modified.csv").resolve())
+PROCESSED_DATA_PATH  = str((REPO_ROOT / "data/processed").resolve())
+INTERIM_DATA_PATH    = str((REPO_ROOT / "data/interim").resolve())
+CLEAN_DATA_FILE      = "work_absenteeism_clean_v1.0.csv"
+CLEAN_DATA_PATH      = str((Path(PROCESSED_DATA_PATH) / CLEAN_DATA_FILE).resolve())
 
 # ===== Model Configuration =====
 RANDOM_STATE = 42
@@ -64,6 +80,24 @@ RF_PARAMS = {
     'random_state': RANDOM_STATE,
     'n_jobs': -1
 }
+
+def _to_int_or_none(val: str):
+    """Parse optional int from env; treat '', 'none', 'None', 'null' as None."""
+    if val is None:
+        return None
+    s = str(val).strip()
+    if s.lower() in ("", "none", "null"):
+        return None
+    return int(s)
+
+# Pull from env first, else fallback to RF_PARAMS dict
+RF_N_ESTIMATORS        = int(os.getenv("RF_N_ESTIMATORS", RF_PARAMS.get("n_estimators", 100)))
+RF_MAX_DEPTH           = _to_int_or_none(os.getenv("RF_MAX_DEPTH", RF_PARAMS.get("max_depth", None)))
+RF_MIN_SAMPLES_SPLIT   = int(os.getenv("RF_MIN_SAMPLES_SPLIT", RF_PARAMS.get("min_samples_split", 2)))
+RF_MIN_SAMPLES_LEAF    = int(os.getenv("RF_MIN_SAMPLES_LEAF", RF_PARAMS.get("min_samples_leaf", 1)))
+
+# Keep RANDOM_STATE already defined above; ensure env override is respected if desired
+RANDOM_STATE = int(os.getenv("RANDOM_STATE", RANDOM_STATE))
 
 # ===== Visualization Configuration =====
 FIGURE_SIZE = (12, 6)

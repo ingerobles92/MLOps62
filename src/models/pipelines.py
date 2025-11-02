@@ -17,6 +17,15 @@ from sklearn.impute import SimpleImputer
 from sklearn.compose import make_column_selector
 import logging
 
+# Add project root to path (handles both Docker /work and local environments)
+import sys
+import os
+if os.path.exists('/work'):
+    sys.path.insert(0, '/work')  # Docker environment
+else:
+    sys.path.insert(0, os.path.abspath('..'))  # Local environment
+
+
 from src.features.transformers import (
     AbsenceCategoryTransformer,
     BMICategoryTransformer,

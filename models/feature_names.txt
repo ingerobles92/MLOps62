@@ -1,4 +1,3 @@
-ID
 Reason for absence
 Month of absence
 Day of the week
@@ -18,6 +17,5 @@ Pet
 Weight
 Height
 Body mass index
-Has_Disciplinary_Failure
-Is_Social_Drinker
-Is_Social_Smoker
+mixed_type_col
+High_Risk
