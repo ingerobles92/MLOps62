@@ -21,7 +21,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pandas as pd
 import numpy as np
-import pickle
+#import pickle
+import joblib
 import json
 from datetime import datetime
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -93,7 +94,7 @@ def prepare_data(data_path, test_size=0.2, random_state=42):
     # Try multiple possible data paths
     possible_paths = [
         data_path,
-        '../mlops-absenteeism-project/data/processed/absenteeism_cleaned.csv',
+        '../work/data/processed/absenteeism_cleaned.csv',
         'data/processed/work_absenteeism_clean_v1.0.csv',
         '../data/processed/absenteeism_cleaned.csv'
     ]
@@ -238,8 +239,9 @@ def save_model_artifacts(model, metadata, feature_names, output_dir='models'):
     # Save model
     model_path = os.path.join(output_dir, 'best_model_svr.pkl')
     logger.info(f"Saving model to {model_path}...")
-    with open(model_path, 'wb') as f:
-        pickle.dump(model, f)
+    joblib.dump(model, model_path)
+    #with open(model_path, 'wb') as f:
+        #pickle.dump(model, f)
 
     # Save metadata
     metadata_path = os.path.join(output_dir, 'model_metadata.json')
@@ -273,7 +275,7 @@ def export_best_model():
 
         # Prepare data
         X_train, X_test, y_train, y_test, feature_names = prepare_data(
-            data_path='../mlops-absenteeism-project/data/processed/absenteeism_cleaned.csv'
+            data_path='../work/data/processed/absenteeism_cleaned.csv'
         )
 
         # Create and train best model

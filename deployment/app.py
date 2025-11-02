@@ -7,19 +7,23 @@ Provides REST API endpoints for the production absenteeism prediction model.
 """
 
 from flask import Flask, request, jsonify
-import pickle
+#import pickle
 import pandas as pd
 import numpy as np
 import sys
 import os
+import json
+import joblib# Added for compatibility to main docker build.
 from datetime import datetime
 
-# Add project root to path
-sys.path.insert(0, os.path.abspath('..'))
+# Relative Paths to the files.
+HERE = os.path.dirname(__file__)
+DEFAULT_MODEL_PATH = os.path.join(HERE, "models", "best_model_svr.pkl")
+DEFAULT_METADATA_PATH = os.path.join(HERE, "..", "models", "model_metadata.json")
 
-from src.models.pipelines import create_full_pipeline
-
-app = Flask(__name__)
+# Allows override per ENV.
+MODEL_PATH = os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH)
+METADATA_PATH = os.getenv("METADATA_PATH", DEFAULT_METADATA_PATH)
 
 # Global model variable (loaded on startup)
 model = None
@@ -28,30 +32,33 @@ model_metadata = {}
 def load_model():
     """Load the trained model from disk"""
     global model, model_metadata
+    try:
+        model = joblib.load(MODEL_PATH)
+        print(f"[INFO] Model loaded -> {MODEL_PATH} | type={type(model)}")
+        if os.path.exists(METADATA_PATH):
+            with open(METADATA_PATH, "r") as f:
+                model_metadata = json.load(f)
+            print(f"[INFO] Metadata loaded -> {METADATA_PATH}")
+        else:
+            model_metadata = {}
+    except Exception as e:
+        model = None
+        print(f"[WARN] Could not load model: {e}")
 
-    model_path = '../models/best_model_svr.pkl'
+# Warm-up added for Gunicorn.
+try:
+    load_model()
+except Exception as e:
+    model = None
+    print(f"[WARN] Warmup: could not load model: {e}")
 
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(
-            f"Model file not found: {model_path}\n"
-            "Please run the model export script first: python scripts/export_best_model.py"
-        )
 
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
+# Add project root to path
+sys.path.insert(0, os.path.abspath('..'))
 
-    # Load metadata if available
-    metadata_path = '../models/model_metadata.json'
-    if os.path.exists(metadata_path):
-        import json
-        with open(metadata_path, 'r') as f:
-            model_metadata = json.load(f)
+from src.models.pipelines import create_full_pipeline
 
-    print(f"✅ Model loaded successfully from {model_path}")
-    if model_metadata:
-        print(f"   Model Type: {model_metadata.get('model_type', 'Unknown')}")
-        print(f"   Test MAE: {model_metadata.get('test_mae', 'Unknown')}")
-        print(f"   Training Date: {model_metadata.get('train_date', 'Unknown')}")
+app = Flask(__name__)
 
 @app.route('/health', methods=['GET'])
 def health():
