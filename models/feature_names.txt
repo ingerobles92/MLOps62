@@ -1,3 +1,4 @@
+ID
 Reason for absence
 Month of absence
 Day of the week
@@ -17,5 +18,3 @@ Pet
 Weight
 Height
 Body mass index
-mixed_type_col
-High_Risk

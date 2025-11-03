@@ -1,10 +1,34 @@
 {
-  "model_type": "Random Forest",
-  "test_mae": 6.905483167822228,
-  "test_rmse": 18.619781441871393,
-  "test_r2": 0.03422449892238322,
-  "train_date": "2025-11-02 20:11:13",
-  "features_count": 21,
-  "training_samples": 570,
-  "test_samples": 143
+  "model_type": "SVR",
+  "model_name": "Support Vector Regression (RBF kernel)",
+  "model_config": {
+    "kernel": "rbf",
+    "C": 1.0,
+    "epsilon": 0.1,
+    "gamma": "scale"
+  },
+  "preprocessing": "StandardScaler",
+  "train_date": "2025-11-03 01:13:13",
+  "training_samples": 595,
+  "test_samples": 149,
+  "features_count": 20,
+  "train_mae": 15.741448111993238,
+  "test_mae": 9.772989177955688,
+  "test_rmse": 57.145624512171224,
+  "test_r2": -0.020933749756546494,
+  "cv_mae": 15.829683179104702,
+  "cv_mae_std": 11.490055341621598,
+  "experiment_results": {
+    "model_name": "SVR_rbf",
+    "test_mae": 9.703343626091158,
+    "test_rmse": 57.12165503305756,
+    "test_r2": -0.0200774770945069,
+    "cv_mae": 15.786223239763848,
+    "train_mae": 15.59212607384682
+  },
+  "target_variable": "Absenteeism time in hours",
+  "unit": "hours",
+  "phase": "Phase 2",
+  "author": "Alexis Alduncin",
+  "team": "MLOps 62"
 }
