@@ -66,7 +66,7 @@ def prepare_data(test_size=0.2, random_state=42):
     """
     logger.info("Loading data...")
     # Use Phase 1 cleaned data (has proper outlier handling - max 120 hours)
-    df = pd.read_csv('../mlops-absenteeism-project/data/processed/absenteeism_cleaned.csv')
+    df = pd.read_csv('../work/data/processed/absenteeism_cleaned.csv')
 
     # Target variable
     target = 'Absenteeism time in hours'
