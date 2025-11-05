@@ -6,6 +6,10 @@ matplotlib==3.10.7
 seaborn==0.13.2
 scikit-learn==1.7.2
 
+# === Gradient Boosting Libraries ===
+xgboost==2.0.3
+lightgbm==4.3.0
+
 # === Notebooks ===
 jupyterlab==4.4.10
 ipykernel==7.0.1
