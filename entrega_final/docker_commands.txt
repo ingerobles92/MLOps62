@@ -1,0 +1,13 @@
+# Build Docker image
+docker build -t ml-service:latest ./serving
+
+# Run Docker container
+docker run -p 8000:8000 ml-service:latest
+
+# Test API endpoint
+curl http://localhost:8000/health
+
+# Make prediction
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"Age":35, "Distance_from_Residence_to_Work":10, "Service_time":5, "Work_load_Average_day":250, "Transportation_expense":200, "Height":170, "Weight":75, "Body_mass_index":25, "Children":2, "Pet":1, "Disciplinary_failure":0, "Education":1, "Social_drinker":1, "Social_smoker":0}'
