@@ -66,7 +66,8 @@ def prepare_data(test_size=0.2, random_state=42):
     """
     logger.info("Loading data...")
     # Use Phase 1 cleaned data (has proper outlier handling - max 120 hours)
-    df = pd.read_csv('../work/data/processed/absenteeism_cleaned.csv')
+    # Using DVC-integrated loader for proper path resolution in Docker/local
+    df = load_data(path='data/processed/absenteeism_cleaned.csv')
 
     # Target variable
     target = 'Absenteeism time in hours'
