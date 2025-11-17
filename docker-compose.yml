@@ -47,3 +47,20 @@ services:
         --host 0.0.0.0 --port 9001 \
         --backend-store-uri sqlite:///./.mlflow/mlflow.db \
         --default-artifact-root s3://mlopsequipo62/mlops/artifacts"
+
+  ml-abs-service:
+    build: .
+    image: python:3.13-slim
+    container_name: ml-abs-service
+    working_dir: /work
+    volumes:
+      - ./:/work
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    command: bash -lc "\
+      pip install --no-cache-dir \"fastapi[standard]\" && \
+      pip install --no-cache-dir uvicorn && \
+      cd src/app && \
+      uvicorn main:app --host 0.0.0.0 --port 8080"
