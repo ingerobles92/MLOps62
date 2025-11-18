@@ -15,11 +15,15 @@ import os
 import json
 import joblib# Added for compatibility to main docker build.
 from datetime import datetime
+from pathlib import Path
 
 # Relative Paths to the files.
-HERE = os.path.dirname(__file__)
-DEFAULT_MODEL_PATH = os.path.join(HERE, "models", "best_model_svr.pkl")
-DEFAULT_METADATA_PATH = os.path.join(HERE, "..", "models", "model_metadata.json")
+HERE = Path(__file__).resolve().parent
+PROJECT_ROOT = HERE.parent 
+
+# Paths to the files
+DEFAULT_MODEL_PATH = PROJECT_ROOT / "models" / "best_model_svr.pkl"
+DEFAULT_METADATA_PATH = PROJECT_ROOT / "models" / "model_metadata.json"
 
 # Allows override per ENV.
 MODEL_PATH = os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH)
