@@ -74,6 +74,8 @@ MLOps62/
 |
 ├── docs                       <- A default mkdocs project; see www.mkdocs.org for details.
 │
+├── entrega_final              <- Includes Monitoring and CI/CD.
+│
 ├── experiments                <- Pipeline to reproduce Processing, Training and Evaluation.
 |
 ├── models                     <- Trained and serialized models, model predictions, or model summaries.

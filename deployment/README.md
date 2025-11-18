@@ -174,12 +174,18 @@ GET /model_info
 
 ### Build Docker Image
 ```bash
-docker build -t absenteeism-api:latest .
+#docker build -t absenteeism-api:latest .
+cd ~/MLOps62
+
+docker build \
+  -t absenteeism-api:latest \
+  -f deployment/Dockerfile \
+  .
 ```
 
 ### Run Container
 ```bash
-docker run -p 5000:5000 absenteeism-api:latest
+docker run --rm -p 5000:5000 absenteeism-api:latest
 ```
 
 ### Test Dockerized API

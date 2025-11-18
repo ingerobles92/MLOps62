@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   mlops-app:
     build: .
@@ -14,19 +16,11 @@ services:
       MLFLOW_TRACKING_URI: http://mlflow:9001
     ports:
       - "8888:8888"
-    command: bash -lc "\
-      jupyter lab --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --allow-root & \
-      tail -f /dev/null"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    command: >
+      bash -lc "jupyter lab --ip=0.0.0.0 --no-browser --port=8888 --NotebookApp.token='' --allow-root & tail -f /dev/null"
 
   mlflow:
-    image: python:3.13-slim
+    image: python:3.9-slim
     container_name: mlflow
     working_dir: /work
     volumes:
@@ -42,8 +36,9 @@ services:
       - "9001:9001"
     command: bash -lc "\
       pip install --no-cache-dir --upgrade pip && \
-      pip install --no-cache-dir mlflow boto3 s3fs && \
+      pip install --no-cache-dir 'mlflow==2.11.1' && \
       mlflow server \
         --host 0.0.0.0 --port 9001 \
         --backend-store-uri sqlite:///./.mlflow/mlflow.db \
-        --default-artifact-root s3://mlopsequipo62/mlops/artifacts"
+        --default-artifact-root file:/work/.mlflow/artifacts \
+      "
